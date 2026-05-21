@@ -9,19 +9,16 @@
 ## 功能特性
 
 - 📈 **实时行情数据**：通过东方财富/新浪财经 API 获取 A 股实时价格、涨跌幅、成交量等数据
-- 🤖 **AI 分析**：使用 OpenAI GPT-3.5 分析股票数据，输出结构化 JSON 结果
-- 📊 **演示模式**：无需 API Key 即可体验完整功能（使用模拟数据）
+- 🤖 **AI 分析**：使用 OpenAI GPT-3.5 分析股票数据
 - 💾 **数据存储**：分析结果自动保存到 Supabase 数据库
-- 🎨 **精美界面**：现代化 UI 设计，支持暗色主题
-- 🀄 **中文支持**：完美支持中文股票名称显示
 
 ## 技术栈
 
 - **框架**: Next.js 14 (App Router)
 - **前端**: React 18 + Tailwind CSS 3
-- **后端**: Node.js (内置 API 路由)
+- **后端**: Node.js 
 - **AI**: OpenAI GPT-3.5-turbo
-- **数据来源**: 东方财富 API、新浪财经 API（国内直连无需加速器）
+- **数据来源**: 东方财富 API、新浪财经 API
 - **数据库**: Supabase
 
 ## 快速开始
@@ -36,18 +33,7 @@ cp .env.example .env
 
 编辑 `.env` 文件：
 
-```env
-# OpenAI API Key（可选，不填则使用演示模式）
-OPENAI_API_KEY=your_openai_api_key
-
-# Supabase 配置（可选，不填则不保存分析记录）
-SUPABASE_URL=your_supabase_url
-SUPABASE_ANON_KEY=your_supabase_anon_key
-```
-
-> **注意**：股票数据 API 已改为东方财富和新浪财经，**无需配置 Alpha Vantage API Key**，国内可直接访问。
-
-### Supabase 表结构（可选）
+### Supabase 表结构
 
 在 Supabase 中创建 `stock_analyses` 表：
 
@@ -61,27 +47,20 @@ CREATE TABLE stock_analyses (
 );
 ```
 
-### 运行开发环境
+<br />
 
-```bash
-npm install
-npm run dev
-```
-
-访问 http://localhost:3000 查看应用。
-
-## 使用说明
+# 使用说明
 
 ### 支持的股票代码
 
-| 代码 | 名称 | 板块 |
-|------|------|------|
-| 600519 | 贵州茅台 | 白酒 |
-| 000001 | 平安银行 | 银行 |
-| 000858 | 五粮液 | 白酒 |
-| 601318 | 中国平安 | 保险 |
-| 002594 | 比亚迪 | 新能源 |
-| AAPL | 苹果公司 | 科技 |
+| 代码     | 名称   | 板块  |
+| ------ | ---- | --- |
+| 600519 | 贵州茅台 | 白酒  |
+| 000001 | 平安银行 | 银行  |
+| 000858 | 五粮液  | 白酒  |
+| 601318 | 中国平安 | 保险  |
+| 002594 | 比亚迪  | 新能源 |
+| AAPL   | 苹果公司 | 科技  |
 
 ### 输入格式
 
@@ -95,6 +74,7 @@ npm run dev
 分析指定股票代码
 
 **请求体**:
+
 ```json
 {
   "symbol": "600519"
@@ -102,6 +82,7 @@ npm run dev
 ```
 
 **响应**:
+
 ```json
 {
   "stock": {
@@ -145,7 +126,7 @@ Output format (strict JSON only):
 {"summary": "string summary of stock performance and recommendation in Chinese", "sentiment": "Bullish" | "Neutral" | "Bearish", "risk_level": "Low" | "Medium" | "High"}
 ```
 
-### 强制 JSON 输出的关键技巧
+### 强制 JSON 输出
 
 1. **明确指令开头**: 使用 "output ONLY a valid JSON object with no additional text" 明确禁止额外内容
 2. **禁止 markdown**: 明确指出 "no markdown"，防止 LLM 返回代码块格式
@@ -157,35 +138,19 @@ Output format (strict JSON only):
 
 代码中实现了 `validateAndParseLLMResponse` 函数，执行以下验证：
 
-1. 清理 markdown 标记（移除 ```json 和 ```）
+1. 清理 markdown 标记（移除 `json 和 `  ）
 2. 使用 JSON.parse 验证格式正确性
-3. 字段校验（summary、sentiment、risk_level）
+3. 字段校验（summary、sentiment、risk\_level）
 4. 解析失败时返回包含原始响应的错误信息
 
-详细实现请参考 [prompt.md](prompt.md)
-
 ## Debug 记录
-
-### 中文乱码问题解决
-
-**问题现象**: 东方财富 API 返回的中文股票名称显示为乱码。
-
-**排查思路**:
-1. 检查 API 返回数据编码格式
-2. 确认响应内容类型和字符编码
-
-**解决方案**: 在 `src/utils/stockApi.js` 中添加中文编码转换：
-
-```javascript
-let name = d.f58 || cleanSymbol;
-name = decodeURIComponent(escape(name));
-```
 
 ### CORS 错误解决
 
 **问题现象**: 开发环境中前端调用 API 时出现 CORS 错误。
 
 **排查思路**:
+
 1. 检查浏览器控制台错误信息
 2. 确认 API 路由是否正确配置
 3. 验证请求方式和头部
@@ -211,8 +176,9 @@ async headers() {
 **问题现象**: 新浪财经 API 返回 403 Forbidden。
 
 **排查思路**:
+
 1. 检查请求头是否完整
-2. 确认是否缺少必要的浏览器标识
+2. 确认是否缺少必要的浏览器标识（防止反爬）
 
 **解决方案**: 添加完整的模拟浏览器请求头：
 
@@ -248,15 +214,5 @@ headers: {
         └── supabase.js   # Supabase 客户端
 ```
 
-## 部署到 Render
+<br />
 
-1. Fork 此仓库
-2. 在 Render 中创建新的 Web Service
-3. 连接 GitHub 仓库
-4. 设置环境变量（参考 `.env.example`）
-5. 构建命令: `npm run build`
-6. 启动命令: `npm start`
-
-## License
-
-MIT
